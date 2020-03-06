@@ -1,10 +1,14 @@
-#!/bin/sh
-n=$#
-averange=0
-for (( i=1; i <= n; i++ ))
-do
-averange=$[ $averange + ${i} ]
-done
-averange=$[ $averange / $n ]
-echo $n
-echo $averange
+#!/bin/bash
+    exec 0<numbers.txt
+    i=0
+    s=0
+    while read line
+    do 
+      echo "Arg num №$i : $line" 
+      let "s+=line"
+      let "i+=1"
+    done
+    echo "Count : $i"
+    let "s=s/i"
+    echo "Average : $s"
+exit 0пш
