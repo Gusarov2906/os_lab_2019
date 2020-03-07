@@ -1,5 +1,5 @@
 #!/bin/bash
-    exec 0<numbers.txt
+   # exec 0<numbers.txt
     i=0
     s=0
     while read line
@@ -11,4 +11,4 @@
     echo "Count : $i"
     let "s=s/i"
     echo "Average : $s"
-exit 0пш
+exit 0
