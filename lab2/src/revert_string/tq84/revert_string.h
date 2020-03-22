@@ -1,4 +1,4 @@
 
 /* function to revert string */
-void RevertString(char *str);
+char* RevertString(char *str);
 
