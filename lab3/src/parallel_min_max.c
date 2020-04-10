@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
         }
         else min_max = GetMinMax(array, i * sub_array_size, array_size);
 
-        printf("Prc[%03d]:\t%d\t%d\n", active_child_processes, min_max.min, min_max.max);
+        //printf("Prc[%03d]:\t%d\t%d\n", active_child_processes, min_max.min, min_max.max);
 
         if (with_files) {
           // use files here
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
       //close(array_fd_read[i]);
     }
 
-    printf("Res[%03d]:\t%d\t%d\n", i, cur.min, cur.max);
+ //   printf("Res[%03d]:\t%d\t%d\n", i, cur.min, cur.max);
 
     if (cur.min < min_max.min) min_max.min = cur.min;
     if (cur.max > min_max.max) min_max.max = cur.max;
