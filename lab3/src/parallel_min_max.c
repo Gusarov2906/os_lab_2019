@@ -99,6 +99,13 @@ int main(int argc, char **argv) {
 
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
+
+    for (i = 0; i < array_size; i++)
+    {
+        printf("%d ", array[i]);
+    }
+    printf("\n");
+
   int active_child_processes = 0;
   int sub_array_size = array_size / pnum; 
   struct timeval start_time;
@@ -121,14 +128,19 @@ int main(int argc, char **argv) {
         // child process
         struct MinMax min_max;
         // parallel somehow
-        if (pnum!=i+1)
+        if (i!=pnum-1)
         {
             min_max = GetMinMax(array, i * sub_array_size, (i+1) * sub_array_size); 
         }
         else min_max = GetMinMax(array, i * sub_array_size, array_size);
+
+        printf("Prc[%03d]:\t%d\t%d\n", active_child_processes, min_max.min, min_max.max);
+
         if (with_files) {
           // use files here
-          FILE * fp = fopen ("data.txt", "a");
+          char* str = (char*)malloc(15*sizeof(char));
+          sprintf(str, "data_%d.txt", i);
+          FILE * fp = fopen (str, "a");
           if (fp==0)
             {
                 printf( "Could not open file\n" );
@@ -137,12 +149,12 @@ int main(int argc, char **argv) {
             else
             {
                  fwrite(&min_max, sizeof(struct MinMax), 1, fp);
-                     close(pipefd[1]);
             }
         } 
         else {
           // use pipe here
           write(pipefd[1],&min_max,sizeof(struct MinMax));
+          //close(pipefd[1]);
         }
         return 0;
       }
@@ -172,30 +184,35 @@ int main(int argc, char **argv) {
   min_max.max = INT_MIN;
 
   for (i = 0; i < pnum; i++) {
-    int min = INT_MAX;
-    int max = INT_MIN;
+    struct MinMax cur;
+    cur.min = INT_MAX;
+    cur.max = INT_MIN;
 
     if (with_files) {
       // read from files
-        FILE* fp = fopen("data.txt", "r");
+        char* str = (char*)malloc(15*sizeof(char));
+          sprintf(str, "data_%d.txt", i);
+          FILE * fp = fopen (str, "r");
         if (fp==0){
             printf( "Could not open file\n" );
             return 1;
         }
         else
         {
-            fseek(fp, i*sizeof(struct MinMax), SEEK_SET);
-            fread(&min_max, sizeof(struct MinMax), 1, fp); 
+            fread(&cur, sizeof(struct MinMax), 1, fp); 
         }
         fclose(fp);
     } else {
       // read from pipes
-      read(array_fd_read[i], &min_max, sizeof(struct MinMax));
-      close(array_fd_read[i]);
+      read(array_fd_read[i], &cur, sizeof(struct MinMax));
+      //close(array_fd_read[i]);
     }
 
-    if (min < min_max.min) min_max.min = min;
-    if (max > min_max.max) min_max.max = max;
+    printf("Res[%03d]:\t%d\t%d\n", i, cur.min, cur.max);
+
+    if (cur.min < min_max.min) min_max.min = cur.min;
+    if (cur.max > min_max.max) min_max.max = cur.max;
+    
   }
 
   struct timeval finish_time;
