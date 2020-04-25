@@ -10,7 +10,7 @@ int main()
     if (chld_pid > 0) //Parent
     {
         printf("Parent process!");
-        sleep(10); 
+        sleep(100); 
         printf("Parent process! Prog finished");
     }
     else //Child

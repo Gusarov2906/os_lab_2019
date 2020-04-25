@@ -4,23 +4,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#include <signal.h>
 
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include <getopt.h>
+#include <unistd.h>
 
 #include "find_min_max.h"
 #include "utils.h"
+int*  PID_id;
+int pnum;
+void kill_all(int sig)
+{
+  for (int i=0;i<pnum;i++)
+  {
+    kill(PID_id[i], SIGKILL);
+  }
+  printf("TIMEOUT\n");
+}
 
 int main(int argc, char **argv) {
   int seed = -1;
   int array_size = -1;
-  int pnum = -1;
+  pnum = -1;
   int i = 0;
   bool with_files = false;
+  int timeout = -100;
 
   while (true) {
     int current_optind = optind ? optind : 1;
@@ -29,6 +42,7 @@ int main(int argc, char **argv) {
                                       {"array_size", required_argument, 0, 0},
                                       {"pnum", required_argument, 0, 0},
                                       {"by_files", no_argument, 0, 'f'},
+                                      {"timeout",required_argument,0,0},
                                       {0, 0, 0, 0}};
 
     int option_index = 0;
@@ -61,9 +75,18 @@ int main(int argc, char **argv) {
             pnum = atoi(optarg);
             // your code here
             // error handling
-            if (pnum <= 0) { 
+            if (pnum <= 0) {
                 printf("pnum is a positive number\n");
                 return 1;
+            }
+            break;
+          case 4:
+           timeout = atoi(optarg);
+           printf("Get %d",timeout);
+           if (timeout <=0)
+            {
+              printf("timeout is a positive number\n");
+              return 1;
             }
             break;
           case 3:
@@ -107,7 +130,7 @@ int main(int argc, char **argv) {
     printf("\n");
 
   int active_child_processes = 0;
-  int sub_array_size = array_size / pnum; 
+  int sub_array_size = array_size / pnum;
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
   int *array_fd_read = malloc(sizeof(int) * pnum);
@@ -130,7 +153,7 @@ int main(int argc, char **argv) {
         // parallel somehow
         if (i!=pnum-1)
         {
-            min_max = GetMinMax(array, i * sub_array_size, (i+1) * sub_array_size); 
+            min_max = GetMinMax(array, i * sub_array_size, (i+1) * sub_array_size);
         }
         else min_max = GetMinMax(array, i * sub_array_size, array_size);
 
@@ -150,7 +173,7 @@ int main(int argc, char **argv) {
             {
                  fwrite(&min_max, sizeof(struct MinMax), 1, fp);
             }
-        } 
+        }
         else {
           // use pipe here
           write(pipefd[1],&min_max,sizeof(struct MinMax));
@@ -172,7 +195,14 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-
+  printf("TIMEOUT NOW = %d" ,timeout);
+  if (timeout > 0)
+  {
+    PID_id = array_fd_read;
+    alarm(timeout);
+    signal(SIGALRM,kill_all);
+    sleep(1);
+  }
   while (active_child_processes > 0) {
     // your code here
     wait(NULL);
@@ -199,7 +229,7 @@ int main(int argc, char **argv) {
         }
         else
         {
-            fread(&cur, sizeof(struct MinMax), 1, fp); 
+            fread(&cur, sizeof(struct MinMax), 1, fp);
         }
         fclose(fp);
     } else {
@@ -212,7 +242,7 @@ int main(int argc, char **argv) {
 
     if (cur.min < min_max.min) min_max.min = cur.min;
     if (cur.max > min_max.max) min_max.max = cur.max;
-    
+
   }
 
   struct timeval finish_time;
