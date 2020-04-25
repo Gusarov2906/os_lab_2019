@@ -1,13 +1,10 @@
 CC=gcc
 CFLAGS=-I.
-all: sequential_min_max parallel_min_max fork_and_exec
+all: parallel_min_max process_memory
 
-fork_and_exec: sequential_min_max
-	$(CC) -o fork_and_exec -c fork_and_exec.c $(CFLAGS)
-
-sequential_min_max : utils.o find_min_max.o utils.h find_min_max.h
-	$(CC) -o sequential_min_max find_min_max.o utils.o sequential_min_max.c $(CFLAGS)
-
+process_memory : process_memory.c
+	$(CC) -o process_memory.o -c process_memory.c $(CFLAGS)
+	
 parallel_min_max : utils.o find_min_max.o utils.h find_min_max.h
 	$(CC) -o parallel_min_max utils.o find_min_max.o parallel_min_max.c $(CFLAGS)
 
@@ -18,4 +15,4 @@ find_min_max.o : utils.h find_min_max.h
 	$(CC) -o find_min_max.o -c find_min_max.c $(CFLAGS)
 
 clean :
-	rm utils.o find_min_max.o sequential_min_max parallel_min_max
+	rm utils.o find_min_max.o parallel_min_max process_memory
